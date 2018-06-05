@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import csv 
 from preprocessing import *
 seed_ = 82848392
 
@@ -67,9 +68,9 @@ data = pd.merge(all_text, compilation_reviews,
 
 data_spot = data.replace(["\n", "\r", "\'"], [" ", " ", ""], regex=True)
 
-data_spot.to_csv("data/data_spot.txt", sep="\t", index=None)
+data_spot.to_csv("results/data_spot.txt", sep="\t", index=None)
 
-data_spot.sample(n=8000).to_csv("data/data_spot_small.txt", 
+data_spot.sample(n=5000).to_csv("results/data_spot_small.txt", 
     sep="\t", index=None)
 
 '''
@@ -95,7 +96,71 @@ data_aux_person = compilation_person[mask].reset_index(drop=True).drop(
 data_person = data_aux_person.replace(
     ["\n", "\r", "\'"], [" ", " ", ""], regex=True)
 
-data_person.to_csv("data/data_person.txt", sep="\t", index=None)
+data_person.to_csv("results/data_person.txt", sep="\t", index=None)
+
+'''
+------------------------------------------------------------------------------
+# 3. BUILD THE MATRIX OF COUNTS AND PMI [PERSON]
+------------------------------------------------------------------------------
+'''
+
+# 3.1 BASIC CASE (3000W X 1577W)
+
+# File of context words
+# context_file = "data/vocab-25k.txt"
+context_file = "data/vocab-3k.txt"
+# File of main words
+words_file = "data/vocab-wordsim.txt"
+# Simple file 3k
+
+# File with the text of a person
+person_file = "results/data_person.txt"
+name_col_pop = "text_person"
+w = 1
+
+counts_df, pmi = create_counts_pmi(w, words_file, context_file, 
+    person_file, name_col_pop)
+
+counts_df.to_csv("results/counts_person_basic.txt")
+pmi.to_csv("results/pmi_person_basic.txt")
+
+
+# # 3.2 LARGER CASE (3000W X 3000W)
+
+# counts_df_3000, pmi_3000 = create_counts_pmi(w, context_file, context_file, 
+#     person_file, name_col_pop)
+
+# counts_df.to_csv("results/counts_person_3000.txt")
+# pmi.to_csv("results/pmi_person_3000.txt")
+
+'''
+------------------------------------------------------------------------------
+# 4. BUILD THE MATRIX OF COUNTS AND PMI [SPOT]
+------------------------------------------------------------------------------
+'''
+
+spot_file = "results/data_spot_small.txt"
+name_col_spot = "description"
+
+
+counts_df_spot, pmi_spot = create_counts_pmi(w, words_file, context_file, 
+    spot_file, name_col_spot)
+
+counts_df_spot.to_csv("results/counts_spot_basic.txt")
+pmi_spot.to_csv("results/pmi_spot_basic.txt")
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
