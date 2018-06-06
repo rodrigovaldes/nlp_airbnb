@@ -6,6 +6,7 @@ To dowload the primary data, use "python3 get_files.py"
 
 ## 2. Preprocessing
 Please use "python3 run_preprocessing.py"
+
 Then, "python3 setup.py", "python3 gen_vocabs.py", "python3 gen_vectors.py"
 
 ## 3. Neural Network
