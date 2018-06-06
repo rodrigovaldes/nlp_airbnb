@@ -45,7 +45,7 @@ def text_filter(text):
         return ' ';
 
 # The whole script begins here
-data_spot = pd.read_csv("results/data_spot.txt", sep="\t");
+data_spot = pd.read_csv("results/data_spot_tiny.txt", sep="\t");
 # data_spot now should include all data for trainning + dev + test
 # to support downstream tasks, we now apply a filter to eliminated
 # unimportant factors
