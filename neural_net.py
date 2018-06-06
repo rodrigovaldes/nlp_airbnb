@@ -6,6 +6,7 @@ import torch.nn.functional as F;
 import numpy as np;
 import torch.optim as optim;
 import re;
+import pandas as pd
 
 EMBEDDING_SIZE = 300;
 HIDDEN_WIDTH = 256;
@@ -56,7 +57,34 @@ def test_classify(net, test_vectors, test_labels):
         correct += (predicted == test_labels).sum().item();
     return correct / num_test;
 
+# Find out which are misclassified
+def summary_misclassified(best_neural_net, test_vectors, test_labels):
 
+    with torch.no_grad():
+        data = net(test_vectors);
+        print(data)
+        _, predicted = torch.max(net(test_vectors), 1);
+        mask_incorrect = ~(predicted == test_labels)
+        bad_real = test_labels[mask_incorrect]
+        bad_prediction = predicted[mask_incorrect]
+
+    return bad_real, bad_prediction
+
+
+
+def gen_good_bad(real, pred):
+
+    RealVsPred = pd.DataFrame({'real': np.array(real), 'pred': np.array(pred)})
+    RealVsPred['indicator'] = 1
+    sum_rp = RealVsPred.groupby(['real', 'pred']).count().reset_index()
+
+    y_real = pd.DataFrame({'real': np.array(test_labels), 'count': 1}
+        ).groupby('real').count().reset_index()
+
+    compiler = sum_rp.merge(y_real, on = 'real')
+    compiler['misclassified'] = compiler['indicator'] / compiler['count']
+
+    return compiler
 
 # The whole process starts from here
 
@@ -71,6 +99,7 @@ _, dev_scores, dev_vectors = load_vector("results/vector_dev.txt", -1);
 print("Load test vectors");
 _, test_scores, test_vectors = load_vector("results/vector_test.txt", -1);
 
+# The output of neural net is the "classification"
 neural_net = torch.nn.Sequential(
             torch.nn.Linear(EMBEDDING_SIZE, HIDDEN_WIDTH),
             torch.nn.Tanh(),
@@ -120,9 +149,11 @@ for epoch in range(num_epochs):
         # forward + backward + optimize
         y = neural_net(x);
         loss = criterion(y, labels);
+        # loss.backward() computes dloss/dx for every parameter x
         loss.backward();
+        # optimizer.step() performs parameter update
         optimizer.step();
-        
+
         # print statistics
         num_iter += 1;
         if num_iter == NUM_ITER_CHECK:
@@ -131,12 +162,14 @@ for epoch in range(num_epochs):
             if (accuracy > ha):
                 print("   --> Loss: %.7f Accuracy: %.4f%%" % (loss, accuracy * 100));
                 ha = accuracy;
+                # "Save" the best neural net (this is nicer than Tensorflow)
                 best_neural_net.load_state_dict(neural_net.state_dict());
 
 accuracy = test_classify(best_neural_net, test_vectors, test_scores);
 print("Accuracy of the best Feed-forward Neural Network on TESTDEV: %.4f%%" % (accuracy * 100));
 
 
-
-
-
+real, pred = summary_misclassified(net, test_vectors, test_scores)
+compiler = gen_good_bad(real, pred)
+print(compiler)
+# The biggest problem: 9 classified as 10
