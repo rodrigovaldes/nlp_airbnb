@@ -10,5 +10,6 @@ Please use "python3 run_preprocessing.py"
 Then, "python3 setup.py", "python3 gen_vocabs.py", "python3 gen_vectors.py"
 
 ## 3. Neural Network
-Use "python3 neural_net.py"
+Use "python3 neural_net*" for different cases of the main model.
 
+Please submit an issue if you find something we can modify. Thanks!
