@@ -8,7 +8,6 @@ from nltk.corpus import stopwords;
 from nltk.stem.porter import PorterStemmer;
 
 import numpy as np;
-
 import pandas as pd;
 import csv;
 
@@ -45,12 +44,13 @@ def text_filter(text):
         return ' ';
 
 # The whole script begins here
-data_spot = pd.read_csv("results/data_spot_tiny.txt", sep="\t");
+# data_spot = pd.read_csv("results/data_spot_tiny.txt", sep="\t");
+data_spot = pd.read_csv("results/data_spot.txt", sep="\t");
 # data_spot now should include all data for trainning + dev + test
 # to support downstream tasks, we now apply a filter to eliminated
 # unimportant factors
-data_spot['description'] = data_spot.apply(lambda row: text_filter(row['description']),
-        axis=1);
+data_spot['description'] = data_spot.apply(
+    lambda row: text_filter(row['description']), axis=1);
 data_spot['reviews'] = data_spot.apply(lambda row: text_filter(row['reviews']),
         axis=1);
 print("Dataset size: ", len(data_spot));
@@ -66,23 +66,9 @@ datasets = np.split(data_spot, [num_train_dev, num_dev_test]);
 
 print("Dataset size:", len(datasets[0]), len(datasets[1]), len(datasets[2]));
 
-datasets[0].to_csv("results/data_spot_train.txt", 
+datasets[0].to_csv("results/data_spot_train.txt",
     sep="\t", index=None);
-datasets[1].to_csv("results/data_spot_dev.txt", 
+datasets[1].to_csv("results/data_spot_dev.txt",
     sep="\t", index=None);
-datasets[2].to_csv("results/data_spot_test.txt", 
+datasets[2].to_csv("results/data_spot_test.txt",
     sep="\t", index=None);
-
-
-
-
-
-#data_spot.to_csv("results/data_spot_cleaned.txt", 
-#    sep="\t", index=None)
-
-
-
-
-
-
-

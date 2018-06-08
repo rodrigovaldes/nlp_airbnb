@@ -13,19 +13,18 @@ import pandas as pd
 CONTROLS HERE
 --------------------------------------------------------------------------------
 '''
-
 # Define Globals
-EMBEDDING_SIZE = 650;
-HIDDEN_WIDTH = 80; # Very small effect, apparently about 500 is good
+EMBEDDING_SIZE = 512;
+HIDDEN_WIDTH = 80; # No influence, I tried 80, and the original 256?
 CV_WIDTH = 10 + 1;
 #LR = 0.00001;
 LR = 0.0001;
 WD = 0#0.0001;
 NUM_ITER_CHECK = 50;
 ADD_SIZE = True; # Takes into account the size of the review in the vector
-DIM_REDUCTION = False # Reduce the dimensions before optimize
-
-# Define parameters
+DIM_REDUCTION = True # Reduce the dimensions before optimize
+DESCRIPTION = False # By default, if DESCRIPTION == False, you use a vector with
+# size of the vector on it.
 num_epochs = 100; # Change to 100!
 batch_size = 10;
 
@@ -35,14 +34,20 @@ END OF CONTROLS
 --------------------------------------------------------------------------------
 '''
 
-if ADD_SIZE:
-    suffix = "_size"
-else:
-    suffix = ""
+if DESCRIPTION == False:
+    if ADD_SIZE:
+        suffix = "_size_nd"
+    else:
+        suffix = "_nd"
+elif DESCRIPTION:
+    if ADD_SIZE:
+        suffix = "_size"
+    else:
+        suffix = ""
 
 if DIM_REDUCTION:
-    EMBEDDING_SIZE = 3500
-    new_embedding_size = 700
+    EMBEDDING_SIZE = 900
+    new_embedding_size = 300
 
 # Load vector (some  optimiozations)
 def load_vector_df(path, limit):
@@ -149,8 +154,20 @@ print(str(datetime.now()))
 _, dev_scores, dev_vectors = load_vector_df("results/vector_dev{}.txt".format(suffix), -1);
 print("Load test vectors");
 print(str(datetime.now()))
+
+# from datetime import datetime
+# print("1. START")
+# print(str(datetime.now()))
+# _, test_scores, test_vectors = load_vector("results/vector_test{}.txt".format(suffix), -1);
+# print("1. END")
+# print(str(datetime.now()))
+# print("2. START")
+# print(str(datetime.now()))
 _, test_scores, test_vectors = load_vector_df("results/vector_test{}.txt".format(suffix), -1);
+# print("2. END")
+# print(str(datetime.now()))
 print(str(datetime.now()))
+
 
 
 ## Make some transformations to the vectors
@@ -194,8 +211,7 @@ best_neural_net = torch.nn.Sequential(
         ).double();
 
 criterion = nn.CrossEntropyLoss();
-optimizer = optim.SGD(neural_net.parameters(), lr = LR, momentum = 0.9,
-    weight_decay=WD);
+optimizer = optim.SGD(neural_net.parameters(), lr = LR, momentum = 0.9, weight_decay=WD);
 
 train_batch_vectors = torch.split(train_vectors, batch_size);
 print(len(train_batch_vectors));
@@ -237,8 +253,7 @@ for epoch in range(num_epochs):
                 best_neural_net.load_state_dict(neural_net.state_dict());
 
 accuracy = test_classify(best_neural_net, test_vectors, test_scores);
-print("Accuracy of the best Feed-forward Neural Network on TESTDEV: %.4f%%" % (
-    accuracy * 100));
+print("Accuracy of the best Feed-forward Neural Network on TESTDEV: %.4f%%" % (accuracy * 100));
 print(str(datetime.now()))
 
 good_r, good_p, bad_r, bad_p = summary_classified(

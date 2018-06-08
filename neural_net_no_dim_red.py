@@ -13,10 +13,9 @@ import pandas as pd
 CONTROLS HERE
 --------------------------------------------------------------------------------
 '''
-
 # Define Globals
-EMBEDDING_SIZE = 650;
-HIDDEN_WIDTH = 80; # Very small effect, apparently about 500 is good
+EMBEDDING_SIZE = 1000;
+HIDDEN_WIDTH = 512; # No influence, I tried 80, and the original 256?
 CV_WIDTH = 10 + 1;
 #LR = 0.00001;
 LR = 0.0001;
@@ -24,8 +23,8 @@ WD = 0#0.0001;
 NUM_ITER_CHECK = 50;
 ADD_SIZE = True; # Takes into account the size of the review in the vector
 DIM_REDUCTION = False # Reduce the dimensions before optimize
+DESCRIPTION = False
 
-# Define parameters
 num_epochs = 100; # Change to 100!
 batch_size = 10;
 
@@ -35,10 +34,16 @@ END OF CONTROLS
 --------------------------------------------------------------------------------
 '''
 
-if ADD_SIZE:
-    suffix = "_size"
-else:
-    suffix = ""
+if DESCRIPTION == False:
+    if ADD_SIZE:
+        suffix = "_size_nd"
+    else:
+        suffix = "_nd"
+elif DESCRIPTION:
+    if ADD_SIZE:
+        suffix = "_size"
+    else:
+        suffix = ""
 
 if DIM_REDUCTION:
     EMBEDDING_SIZE = 3500
@@ -143,15 +148,17 @@ def reduce_size_vectors(vectors, new_len):
 from datetime import datetime
 print("Load train vectors");
 print(str(datetime.now()))
-_, train_scores, train_vectors = load_vector_df("results/vector_train{}.txt".format(suffix), -1);
+_, train_scores, train_vectors = load_vector_df(
+    "results/vector_train{}.txt".format(suffix), -1);
 print("Load dev vectors");
 print(str(datetime.now()))
-_, dev_scores, dev_vectors = load_vector_df("results/vector_dev{}.txt".format(suffix), -1);
+_, dev_scores, dev_vectors = load_vector_df(
+    "results/vector_dev{}.txt".format(suffix), -1);
 print("Load test vectors");
 print(str(datetime.now()))
-_, test_scores, test_vectors = load_vector_df("results/vector_test{}.txt".format(suffix), -1);
+_, test_scores, test_vectors = load_vector_df(
+    "results/vector_test{}.txt".format(suffix), -1);
 print(str(datetime.now()))
-
 
 ## Make some transformations to the vectors
 if DIM_REDUCTION:
@@ -194,8 +201,8 @@ best_neural_net = torch.nn.Sequential(
         ).double();
 
 criterion = nn.CrossEntropyLoss();
-optimizer = optim.SGD(neural_net.parameters(), lr = LR, momentum = 0.9,
-    weight_decay=WD);
+optimizer = optim.SGD(neural_net.parameters(), lr = LR,
+    momentum = 0.9, weight_decay=WD);
 
 train_batch_vectors = torch.split(train_vectors, batch_size);
 print(len(train_batch_vectors));
@@ -231,7 +238,8 @@ for epoch in range(num_epochs):
             num_iter = 0;
             accuracy = test_classify(neural_net, dev_vectors, dev_scores);
             if (accuracy > ha):
-                print("   --> Loss: %.7f Accuracy: %.4f%%" % (loss, accuracy * 100));
+                print("   --> Loss: %.7f Accuracy: %.4f%%" % (
+                    loss, accuracy * 100));
                 ha = accuracy;
                 # "Save" the best neural net (this is nicer than Tensorflow)
                 best_neural_net.load_state_dict(neural_net.state_dict());

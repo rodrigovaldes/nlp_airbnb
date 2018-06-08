@@ -27,6 +27,13 @@ data_spot.apply(lambda row: count_words(row['description']), axis=1);
 data_spot.apply(lambda row: count_words(row['reviews']), axis=1);
 
 word_count = nltk.FreqDist(review_words);
+
+most_common_words = word_count.most_common(3000)
+most_common_df = pd.DataFrame.from_records(most_common_words)
+most_common_df[1].plot.line()
+plt.show()
+
+# word_count.plot()
 common_words = word_count.most_common(VOCAB_SIZE);
 
 count = 0;
@@ -53,9 +60,3 @@ for word, freq in common_words:
 print(count, len(review_words))
 
 vocabs.close();
-
-
-
-
-
-
